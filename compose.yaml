@@ -1,0 +1,22 @@
+services:
+  satquery:
+    build: .
+    ports:
+      - "127.0.0.1:8000:8000"
+    environment:
+      HF_MODEL: ${HF_MODEL:-Qwen/Qwen3-VL-30B-A3B-Instruct}
+      HF_TOKEN: ${HF_TOKEN:-}
+      SATQUERY_ACCESS_TOKEN: ${SATQUERY_ACCESS_TOKEN:-}
+      SATQUERY_ALLOWED_HOSTS: ${SATQUERY_ALLOWED_HOSTS:-localhost,127.0.0.1}
+      SATQUERY_PUBLIC_ORIGIN: ${SATQUERY_PUBLIC_ORIGIN:-}
+    read_only: true
+    tmpfs:
+      - /tmp:size=128m,mode=1777
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    mem_limit: 1g
+    cpus: 2
+    pids_limit: 128
+    restart: unless-stopped

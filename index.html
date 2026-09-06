@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f8f9fa">
+  <meta name="description" content="SatQuery AI — an auditable workspace for remote sensing image analysis.">
+  <title>SatQuery AI · Observation workspace</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/style.css">
+  <script type="module" src="/app.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#query">Skip to analysis question</a>
+  <noscript><p class="fatal-message">Enable JavaScript to upload imagery and use the analysis workspace.</p></noscript>
+  <div class="app-shell" id="app-shell">
+    <aside class="sidebar" aria-label="Workspace controls">
+      <a class="brand" href="/" aria-label="SatQuery AI home">
+        <svg class="brand-symbol" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="14"/><ellipse cx="20" cy="20" rx="19" ry="6" transform="rotate(-35 20 20)"/><path d="M20 6v28M6 20h28"/><circle cx="31" cy="9" r="3"/></svg>
+        <span>SatQuery<span class="brand-ai">AI</span><small>EARTH OBSERVATION</small></span>
+      </a>
+      <div class="sidebar-nav"><span class="nav-marker"></span><span>Analysis workspace</span><span class="nav-key">01</span></div>
+      <button class="button quiet new-session" id="new-session" type="button"><span aria-hidden="true">＋</span> New session</button>
+      <section class="control-section">
+        <div class="section-kicker">ANALYSIS CONFIGURATION</div>
+        <label for="mode">Analysis mode</label>
+        <select id="mode">
+          <option value="auto">Auto route</option>
+          <option value="single">Single image</option>
+          <option value="bitemporal">Bi-temporal change</option>
+          <option value="fusion">Cross-modal fusion</option>
+        </select>
+        <p class="field-help" id="mode-description">The agent selects a compatible tool from your question and image types.</p>
+        <div id="threshold-control" hidden>
+          <label class="range-label" for="threshold">Change threshold <output id="threshold-value" for="threshold">0.15</output></label>
+          <input id="threshold" type="range" min="0.03" max="0.7" step="0.01" value="0.15">
+          <p class="field-help">Minimum normalized radiometric difference. Lower values flag more pixels.</p>
+        </div>
+        <label class="checkbox-label alignment-control" id="alignment-control" hidden>
+          <input id="co-registered" type="checkbox">
+          <span>These images already share an aligned pixel grid.<small>Required for pairs without a CRS. Equal dimensions alone do not prove alignment.</small></span>
+        </label>
+      </section>
+      <section class="control-section domain-card">
+        <div class="section-kicker">DOMAIN CONTEXT</div>
+        <div class="domain-title"><span class="small-orbit" aria-hidden="true">◉</span> BigEarthNet</div>
+        <div class="domain-detail">19 land-cover classes</div>
+        <p class="field-help">Remote-sensing vocabulary for optical, multispectral and SAR evidence.</p>
+        <span class="mini-label">PROMPT CONTEXT</span>
+      </section>
+      <div class="sidebar-bottom">
+        <div class="model-card"><div class="section-kicker">VISION MODEL</div><strong id="model-label">Not connected</strong><small id="key-status">Add a Hugging Face token</small></div>
+        <button class="button quiet settings-button" id="open-settings" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 3-1 3-3 1-2 5 2 5 3 1 1 3h6l1-3 3-1 2-5-2-5-3-1-1-3Z"/><circle cx="12" cy="12" r="3"/></svg> Connection settings</button>
+        <div class="sidebar-footnote"><span class="tiny-dot"></span> SESSION STAYS IN THIS TAB</div>
+      </div>
+    </aside>
+    <main class="main-workspace">
+      <header class="topbar">
+        <div class="breadcrumb">Workspace <span>/</span> <strong>Image analysis</strong></div>
+        <div class="topbar-actions"><button class="icon-button mobile-new-session" id="new-session-mobile" type="button" aria-label="Start a new session" title="New session">＋</button><span class="status-badge" id="connection-status" role="status"><span class="status-dot"></span><span id="connection-label">Connecting</span></span><button class="button small quiet" id="export-menu-button" type="button" aria-haspopup="dialog">Export report <span aria-hidden="true">↗</span></button></div>
+      </header>
+      <div class="workspace-heading"><div><p class="eyebrow">FROM PIXELS TO EVIDENCE</p><h1>Observation workspace<span class="heading-dot">.</span></h1></div><div class="session-counter"><span id="analysis-count">0</span> analyses in this session</div></div>
+      <div class="work-grid">
+        <section class="imagery-column" aria-label="Imagery and execution">
+          <div class="imagery-panel glass-panel">
+            <div class="panel-heading"><div><span class="section-number">01</span><h2>Imagery</h2><span class="count-pill" id="image-count">0 / 2</span></div><span class="panel-meta">GeoTIFF · TIFF · PNG · JPEG</span></div>
+            <div class="mode-tabs" role="group" aria-label="Quick analysis mode">
+              <button type="button" data-mode="auto" class="mode-tab active" aria-pressed="true">Auto</button>
+              <button type="button" data-mode="single" class="mode-tab" aria-pressed="false">Single image</button>
+              <button type="button" data-mode="bitemporal" class="mode-tab" aria-pressed="false">Bi-temporal</button>
+              <button type="button" data-mode="fusion" class="mode-tab" aria-pressed="false">Cross-modal</button>
+            </div>
+            <div class="upload-grid" id="upload-grid">
+              <article class="upload-card" data-slot="0">
+                <div class="image-card-header"><span><b class="image-letter">A</b><strong id="slot-title-0">Primary image</strong></span><button class="icon-button remove-image" data-remove="0" type="button" aria-label="Remove image A" disabled>×</button></div>
+                <div class="drop-zone" id="drop-0" role="button" tabindex="0" aria-label="Upload image A or drop an image here">
+                  <input type="file" id="file-0" accept=".tif,.tiff,.png,.jpg,.jpeg" hidden>
+                  <div class="drop-empty" id="empty-0"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M9 30v9h30v-9M24 32V8m-9 9 9-9 9 9"/></svg><strong>Drop your image here</strong><span>or <u>browse files</u></span><small>Up to 20 MiB per image</small></div>
+                  <img id="preview-0" class="raster-preview" alt="Image A preview" hidden>
+                  <div class="preview-loading" id="loading-0" hidden><span class="spinner"></span><span>Validating raster</span></div>
+                </div>
+                <div class="image-toolbar"><span class="filename" id="filename-0">No image selected</span><button class="icon-button zoom-image" data-zoom="0" type="button" aria-label="Enlarge image A" disabled>⤢</button></div>
+                <p class="image-error" id="error-0" role="alert" hidden></p>
+                <div class="image-fields"><label for="sensor-0">Image type<select id="sensor-0"><option value="optical">Optical</option><option value="multispectral">Multispectral</option><option value="sar">SAR</option></select></label><label for="date-0">Acquired on<input type="date" id="date-0" aria-label="Image A acquisition date"></label></div>
+                <details class="band-settings" id="bands-details-0"><summary>Band &amp; sensor settings <span aria-hidden="true">＋</span></summary><div class="band-body"><label for="bands-0">Display channels (R, G, B)<input id="bands-0" type="text" inputmode="numeric" autocomplete="off" placeholder="Auto, or e.g. 3,2,1" maxlength="12"></label><div class="spectral-fields" id="spectral-0"><label for="red-0">Red band<input id="red-0" type="number" min="1" max="64" placeholder="Optional"></label><label for="nir-0">NIR band<input id="nir-0" type="number" min="1" max="64" placeholder="Optional"></label></div><div id="sar-control-0" hidden><label for="sar-scale-0">SAR values<select id="sar-scale-0"><option value="display">Display encoded</option><option value="db">Calibrated dB</option><option value="linear">Calibrated linear power</option></select></label></div><p class="field-help">Indices start at 1. Set red and NIR together to calculate NDVI from TIFF bands.</p></div></details>
+                <div class="image-metadata" id="metadata-0"><span> </span></div>
+              </article>
+              <article class="upload-card" data-slot="1">
+                <div class="image-card-header"><span><b class="image-letter secondary">B</b><strong id="slot-title-1">Comparison image</strong></span><button class="icon-button remove-image" data-remove="1" type="button" aria-label="Remove image B" disabled>×</button></div>
+                <div class="drop-zone" id="drop-1" role="button" tabindex="0" aria-label="Upload image B or drop an image here">
+                  <input type="file" id="file-1" accept=".tif,.tiff,.png,.jpg,.jpeg" hidden>
+                  <div class="drop-empty" id="empty-1"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M9 30v9h30v-9M24 32V8m-9 9 9-9 9 9"/></svg><strong>Add a second perspective</strong><span>another date or sensor</span><small>Optional in auto mode</small></div>
+                  <img id="preview-1" class="raster-preview" alt="Image B preview" hidden>
+                  <div class="preview-loading" id="loading-1" hidden><span class="spinner"></span><span>Validating raster</span></div>
+                </div>
+                <div class="image-toolbar"><span class="filename" id="filename-1">No image selected</span><button class="icon-button zoom-image" data-zoom="1" type="button" aria-label="Enlarge image B" disabled>⤢</button></div>
+                <p class="image-error" id="error-1" role="alert" hidden></p>
+                <div class="image-fields"><label for="sensor-1">Image type<select id="sensor-1"><option value="optical">Optical</option><option value="multispectral">Multispectral</option><option value="sar">SAR</option></select></label><label for="date-1">Acquired on<input type="date" id="date-1" aria-label="Image B acquisition date"></label></div>
+                <details class="band-settings" id="bands-details-1"><summary>Band &amp; sensor settings <span aria-hidden="true">＋</span></summary><div class="band-body"><label for="bands-1">Display channels (R, G, B)<input id="bands-1" type="text" inputmode="numeric" autocomplete="off" placeholder="Auto, or e.g. 3,2,1" maxlength="12"></label><div class="spectral-fields" id="spectral-1"><label for="red-1">Red band<input id="red-1" type="number" min="1" max="64" placeholder="Optional"></label><label for="nir-1">NIR band<input id="nir-1" type="number" min="1" max="64" placeholder="Optional"></label></div><div id="sar-control-1" hidden><label for="sar-scale-1">SAR values<select id="sar-scale-1"><option value="display">Display encoded</option><option value="db">Calibrated dB</option><option value="linear">Calibrated linear power</option></select></label></div><p class="field-help">Indices start at 1. Set red and NIR together to calculate NDVI from TIFF bands.</p></div></details>
+                <div class="image-metadata" id="metadata-1"><span></span></div>
+              </article>
+            </div>
+            <div class="imagery-footer"><span class="small-shield" aria-hidden="true">◇</span><span>Previews are validated locally by the backend. Analysis sends selected visualizations to Hugging Face.</span></div>
+          </div>
+          <section class="glass-panel evidence-panel" aria-labelledby="evidence-title">
+            <div class="panel-heading"><div><span class="section-number">02</span><h2 id="evidence-title">Visual evidence</h2></div><span class="panel-meta" id="evidence-count">No analysis yet</span></div>
+            <div id="evidence-empty" class="compact-empty"><span aria-hidden="true">⌗</span><p>Source previews, change maps and proposed regions will appear here.</p></div>
+            <div id="evidence-content" hidden><div id="evidence-tabs" class="evidence-tabs" role="group" aria-label="Evidence image"></div><figure class="evidence-figure"><button id="enlarge-evidence" class="evidence-image-button" type="button" aria-label="Enlarge current evidence"><img id="evidence-image" alt="Selected visual evidence"></button><figcaption id="evidence-caption"></figcaption></figure><div class="metrics-grid" id="metrics-grid"></div><div class="region-list" id="region-list"></div></div>
+          </section>
+          <section class="glass-panel trace-panel" aria-labelledby="trace-title">
+            <div class="panel-heading"><div><span class="section-number">03</span><h2 id="trace-title">Execution trace</h2><span class="mini-label">AUDITABLE</span></div><button class="button small quiet" id="copy-trace" type="button" disabled>Copy JSON</button></div>
+            <div class="trace-overview" id="trace-overview"><p>Every completed analysis includes its tool, parameters, evidence and confidence calculation.</p></div>
+            <details id="trace-details" hidden><summary>Inspect execution JSON <span aria-hidden="true">↗</span></summary><pre id="trace-json" tabindex="0" aria-label="Execution trace JSON"></pre></details>
+          </section>
+        </section>
+        <section class="glass-panel chat-panel" aria-labelledby="chat-title">
+          <div class="panel-heading chat-heading"><div><span class="chat-spark" aria-hidden="true">✳</span><h2 id="chat-title">Analysis assistant</h2></div><span class="mini-label">VLM</span></div>
+          <div class="chat-log" id="chat-log" role="log" aria-live="polite" aria-relevant="additions">
+            <div class="chat-welcome" id="chat-welcome"><div class="welcome-symbol" aria-hidden="true">⌖</div><h3>A closer look at your world.</h3><p>Upload imagery, choose its sensor type, and ask a question. The agent returns observations with inspectable evidence.</p><div class="welcome-capabilities"><span>Scene understanding</span><span>Change detection</span><span>Region grounding</span></div></div>
+          </div>
+          <div class="suggestions" id="suggestions" aria-label="Example questions"></div>
+          <form class="composer" id="query-form"><label class="sr-only" for="query">Your remote-sensing question</label><textarea id="query" rows="3" minlength="3" maxlength="4000" placeholder="What can you tell me about this area?" required></textarea><div class="composer-bottom"><span id="composer-hint">⌘ / Ctrl + Enter to analyze</span><button class="button primary" id="analyze-button" type="submit"><span id="analyze-label">Analyze</span><span aria-hidden="true">↗</span></button><button class="button danger" id="cancel-analysis" type="button" hidden>Cancel</button></div></form>
+          <p class="chat-disclaimer">Interpretations can be wrong. Confidence indicates evidence support, not measured accuracy.</p>
+        </section>
+      </div>
+      <footer class="workspace-footer"><span>SatQuery AI <span class="footer-separator">/</span> Remote sensing, with a trace.</span><span id="backend-version">FASTAPI + VANILLA JS</span></footer>
+    </main>
+  </div>
+  <dialog id="settings-dialog" class="modal settings-modal" aria-labelledby="settings-title">
+    <form id="settings-form"><div class="modal-heading"><div><p class="eyebrow">WORKSPACE CONNECTION</p><h2 id="settings-title">Model settings</h2></div><button class="icon-button" type="button" data-close="settings-dialog" aria-label="Close settings">×</button></div><p class="modal-intro">Connect an image-capable model through Hugging Face Inference Providers.</p>
+      <label for="api-key">Hugging Face API token</label><div class="secret-field"><input id="api-key" type="password" autocomplete="off" spellcheck="false" maxlength="256" placeholder="hf_…"><button class="button small quiet" id="toggle-key" type="button" aria-pressed="false">Show</button></div>
+      <label class="checkbox-label remember-label"><input id="remember-key" type="checkbox" checked><span>Remember token in this browser</span></label>
+      <p class="field-help">Remembered tokens use localStorage and are accessible to scripts on this origin. Keep this workspace trusted and clear the token on shared devices. Tokens never enter reports.</p>
+      <label for="model-input">Vision model</label><input id="model-input" type="text" list="model-options" autocomplete="off" spellcheck="false" maxlength="180" value="Qwen/Qwen3-VL-30B-A3B-Instruct"><datalist id="model-options"></datalist>
+      <div class="model-actions"><button class="button small quiet" id="refresh-models" type="button">Refresh available models</button><a href="https://huggingface.co/settings/tokens" target="_blank" rel="noopener noreferrer">Get a token ↗</a></div><p class="field-help">Use an organization/model ID, optionally followed by :provider. Availability and multi-image support depend on the provider. Inference may use account credits.</p>
+      <div id="workspace-access-field" hidden><label for="workspace-access">Workspace access token</label><input id="workspace-access" type="password" autocomplete="off" maxlength="256"><p class="field-help">Provided by the workspace operator. Kept only for this tab's session.</p></div>
+      <p class="form-status" id="settings-status" role="status"></p><div class="modal-actions"><button class="button quiet danger-text" id="clear-key" type="button">Clear token</button><button class="button primary" type="submit">Save settings</button></div>
+    </form>
+  </dialog>
+  <dialog id="export-dialog" class="modal export-modal" aria-labelledby="export-title"><div class="modal-heading"><div><p class="eyebrow">TAKE YOUR EVIDENCE WITH YOU</p><h2 id="export-title">Export session</h2></div><button class="icon-button" type="button" data-close="export-dialog" aria-label="Close export options">×</button></div><p class="modal-intro" id="export-description">Export chat, source previews, derived evidence, measurements and execution traces.</p><button class="export-option" id="download-json" type="button"><span class="export-format">{ }</span><span><strong>Download JSON</strong><small>Complete session with embedded visual evidence</small></span><span aria-hidden="true">↓</span></button><button class="export-option" id="print-pdf" type="button"><span class="export-format">PDF</span><span><strong>Print / save PDF</strong><small>Formatted report using your browser's Save as PDF</small></span><span aria-hidden="true">↗</span></button><p class="field-help">API tokens and original raster files are excluded. Visual evidence is included at the analysis resolution.</p></dialog>
+  <dialog id="image-dialog" class="modal image-modal" aria-labelledby="image-dialog-title"><div class="modal-heading"><h2 id="image-dialog-title">Visual evidence</h2><button class="icon-button" type="button" data-close="image-dialog" aria-label="Close image">×</button></div><img id="dialog-image" alt="Enlarged evidence"><p id="dialog-image-description"></p><button class="button quiet" id="download-evidence" type="button">Download PNG ↓</button></dialog>
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+  <section id="print-report" class="print-report" aria-label="Printable analysis report"></section>
+</body>
+</html>
